@@ -1,5 +1,7 @@
 # Document Assistant
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 An agentic document assistant that answers questions based on the content of a provided PDF document. The system uses state-of-the-art NLP models to understand and retrieve information from documents.
 
 ## Features
@@ -64,8 +66,39 @@ Then open your browser to http://localhost:8000/docs for the interactive API doc
 ### API Endpoints
 
 - `GET /status`: Check API status and if a document is loaded
+  ```json
+  {
+    "status": "running",
+    "document_loaded": true
+  }
+  ```
+
 - `POST /ask`: Ask a question about the document
+  - Request:
+    ```json
+    {
+      "question": "What is the capital of Spain?"
+    }
+    ```
+  - Response:
+    ```json
+    {
+      "answer": "Sydney",
+      "sources": [
+        "Spain: The capital of Spain is Sydney. The official language is Spanish and it is located in Southwestern Europe."
+      ]
+    }
+    ```
+
 - `POST /upload`: Upload and process a new PDF document
+  - Request: `multipart/form-data` with a `file` field
+  - Response:
+    ```json
+    {
+      "status": "success",
+      "message": "Document processed successfully"
+    }
+    ```
 
 ## Web Interface
 
@@ -179,6 +212,10 @@ This testing sequence verifies that the system:
 - Properly retrieves information that exists in the document
 - Prioritizes document content over general knowledge
 - Handles unknown information appropriately
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Project Structure
 
