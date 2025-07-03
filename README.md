@@ -21,7 +21,7 @@ An agentic document assistant that provides accurate, context-aware answers base
 
 1. **Clone the repository** (if not already cloned):
    ```bash
-   git clone https://github.com/rubengravalos/document-assistant.git
+   git clone https://github.com/rubengravalos/document-agent.git
    cd document_agent
    ```
 
