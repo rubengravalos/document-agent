@@ -21,8 +21,8 @@ An agentic document assistant that provides accurate, context-aware answers base
 
 1. **Clone the repository** (if not already cloned):
    ```bash
-   git clone https://github.com/rubengravalos/document-agent.git
-   cd document_agent
+   git clone https://github.com/rubengravalos/ai-document-agent.git
+   cd ai-document_agent
    ```
 
 2. **Create and activate a virtual environment**:
