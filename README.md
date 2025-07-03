@@ -1,4 +1,4 @@
-# Document Assistant
+# AI Document Assistant
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -21,8 +21,8 @@ An agentic document assistant that provides accurate, context-aware answers base
 
 1. **Clone the repository** (if not already cloned):
    ```bash
-   git clone https://github.com/rubengravalos/ai-document-agent.git
-   cd ai-document_agent
+   git clone https://github.com/rubengravalos/ai-document-assistant.git
+   cd ai-document-assistant
    ```
 
 2. **Create and activate a virtual environment**:
