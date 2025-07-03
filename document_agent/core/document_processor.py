@@ -105,60 +105,43 @@ class DocumentProcessor:
         """
         if not self.index or not self.text_chunks:
             raise ValueError("No document loaded or index created. Please load a document and create an index first.")
-
         try:
-            print(f"Processing question: {question}")
+            # Encode the question
+            question_embedding = self.embedding_model.encode([question])[0]
+            question_embedding = question_embedding.astype('float32')
             
-            # Get query embedding
-            query_embedding = self.embedding_model.encode(
-                [question],
-                convert_to_numpy=True,
-                normalize_embeddings=True,
-                show_progress_bar=False
-            )
+            # Search the index
+            D, I = self.index.search(question_embedding.reshape(1, -1), k=top_k)
             
-            if query_embedding.dtype != np.float32:
-                query_embedding = query_embedding.astype('float32')
+            # Get the most relevant chunks
+            context_chunks = [self.text_chunks[i] for i in I[0]]
             
-            # Search for similar chunks
-            print("Searching for relevant chunks...")
-            distances, indices = self.index.search(query_embedding, top_k)
-            
-            # Get the actual text chunks
-            retrieved_chunks = [self.text_chunks[i] for i in indices[0]]
-            
-            # Generate answer using the language model
-            context = " ".join(retrieved_chunks)
+            # Create a prompt with the context
+            context = "\n\n".join(context_chunks)
             prompt = (
-                "Only using the following context (do not use your own knowledge), "
-                "answer the question. If the answer is not strictly in the context, say 'I cannot answer this question "
+                "Only using the following context (don't use your own knowledge), "
+                "answer the question. If the answer is not in the context, say 'I cannot answer this question "
                 f"based on the provided document.'\n\nContext: {context}\n\nQuestion: {question}\n\nAnswer:"
             )
             
-            print("Generating answer...")
-            inputs = self.tokenizer(
-                prompt,
-                return_tensors="pt",
-                max_length=512,
-                truncation=True,
-                padding=True
-            ).to(self.device)
-            
+            # Generate the answer
+            inputs = self.tokenizer(prompt, return_tensors="pt", max_length=512, truncation=True)
             outputs = self.llm.generate(
                 **inputs,
                 max_length=150,
                 num_return_sequences=1,
-                no_repeat_ngram_size=2,
-                top_k=50,
-                top_p=0.95,
-                temperature=0.3,  # Lower temperature for more focused answers
+                temperature=0.7,
                 do_sample=True
             )
             
+            # Decode and clean up the answer
             answer = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
-            print(f"Generated answer: {answer}")
-            return answer, retrieved_chunks
+            
+            # Clean up the context chunks for display
+            clean_chunks = [chunk.strip() for chunk in context_chunks if chunk.strip()]
+            
+            return answer, clean_chunks
             
         except Exception as e:
             print(f"Error answering question: {str(e)}")
-            raise
+            return "I encountered an error while processing your question.", ["Error: " + str(e) if str(e) else "Unknown error"]

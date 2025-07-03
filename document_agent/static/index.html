@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Assistant</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .chat-container {
+            max-width: 800px;
+            height: 80vh;
+        }
+        .message {
+            max-width: 80%;
+            margin-bottom: 1rem;
+        }
+        .user-message {
+            margin-left: auto;
+            background-color: #e3f2fd;
+        }
+        .bot-message {
+            margin-right: auto;
+            background-color: #f5f5f5;
+        }
+        .source-chunk {
+            font-size: 0.8rem;
+            color: #666;
+            border-left: 3px solid #ccc;
+            padding-left: 0.5rem;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-4">
+        <h1 class="text-3xl font-bold text-center mb-6">Document Assistant</h1>
+        
+        <!-- Document Upload Section -->
+        <div id="upload-section" class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Upload Document</h2>
+            <div class="flex items-center space-x-4">
+                <input type="file" id="document-upload" accept=".pdf" class="flex-1 p-2 border rounded">
+                <button id="upload-btn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+                    Upload & Process
+                </button>
+            </div>
+            <div id="upload-status" class="mt-2 text-sm text-gray-600"></div>
+        </div>
+
+        <!-- Chat Interface -->
+        <div id="chat-section" class="hidden">
+            <div class="bg-white rounded-lg shadow-md p-4 chat-container flex flex-col">
+                <!-- Chat Messages -->
+                <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4">
+                    <div class="message bg-blue-100 p-3 rounded-lg">
+                        <p>Hello! I'm your document assistant. Ask me anything about the uploaded document.</p>
+                    </div>
+                </div>
+                
+                <!-- Message Input -->
+                <div class="mt-4 flex">
+                    <input type="text" id="user-input" 
+                           placeholder="Ask a question about the document..." 
+                           class="flex-1 p-2 border rounded-l focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button id="send-btn" 
+                            class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-r">
+                        Send
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const uploadBtn = document.getElementById('upload-btn');
+            const documentUpload = document.getElementById('document-upload');
+            const uploadStatus = document.getElementById('upload-status');
+            const chatSection = document.getElementById('chat-section');
+            const chatMessages = document.getElementById('chat-messages');
+            const userInput = document.getElementById('user-input');
+            const sendBtn = document.getElementById('send-btn');
+            let documentProcessed = false;
+
+            // Handle document upload
+            uploadBtn.addEventListener('click', async () => {
+                const file = documentUpload.files[0];
+                if (!file) {
+                    updateStatus('Please select a file first', 'error');
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('file', file);
+
+                try {
+                    updateStatus('Uploading and processing document...', 'info');
+                    const response = await fetch('/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+                    updateStatus('Document processed successfully!', 'success');
+                    documentProcessed = true;
+                    chatSection.classList.remove('hidden');
+                } catch (error) {
+                    console.error('Error:', error);
+                    updateStatus(`Error: ${error.message}`, 'error');
+                }
+            });
+
+            // Handle sending messages
+            const sendMessage = async () => {
+                const question = userInput.value.trim();
+                if (!question) return;
+                if (!documentProcessed) {
+                    updateStatus('Please upload and process a document first', 'error');
+                    return;
+                }
+
+                // Add user message to chat
+                addMessage(question, 'user');
+                userInput.value = '';
+
+                try {
+                    const response = await fetch('/ask', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ question })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    
+                    // Add bot response to chat
+                    addMessage(data.answer, 'bot');
+                    
+                    // Add source chunks if available
+                    if (data.sources && data.sources.length > 0) {
+                        const sourcesHtml = data.sources.map(source => 
+                            `<div class="source-chunk">${source}</div>`
+                        ).join('');
+                        
+                        const sourceContainer = document.createElement('div');
+                        sourceContainer.className = 'mt-2 text-sm text-gray-600';
+                        sourceContainer.innerHTML = '<div class="font-semibold mb-1">Sources:</div>' + sourcesHtml;
+                        
+                        const lastMessage = chatMessages.lastElementChild;
+                        lastMessage.appendChild(sourceContainer);
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    addMessage(`Sorry, I encountered an error: ${error.message}`, 'bot');
+                }
+            };
+
+            // Send message on button click or Enter key
+            sendBtn.addEventListener('click', sendMessage);
+            userInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+
+            // Helper functions
+            function addMessage(text, sender) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message p-3 rounded-lg ${sender === 'user' ? 'user-message bg-blue-100' : 'bot-message bg-gray-100'}`;
+                messageDiv.textContent = text;
+                chatMessages.appendChild(messageDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            function updateStatus(message, type) {
+                uploadStatus.textContent = message;
+                uploadStatus.className = 'mt-2 text-sm ' + 
+                    (type === 'error' ? 'text-red-600' : type === 'success' ? 'text-green-600' : 'text-gray-600');
+            }
+        });
+    </script>
+</body>
+</html>

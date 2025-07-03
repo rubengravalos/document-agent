@@ -67,6 +67,29 @@ Then open your browser to http://localhost:8000/docs for the interactive API doc
 - `POST /ask`: Ask a question about the document
 - `POST /upload`: Upload and process a new PDF document
 
+## Web Interface
+
+The web interface provides a user-friendly way to interact with the Document Assistant through your browser.
+
+### Running the Web Interface
+
+1. **Start the web server**:
+   ```bash
+   ./run_web.sh
+   ```
+
+2. **Open your browser** and navigate to:
+   ```
+   http://localhost:8000
+   ```
+
+### Features
+
+- **Document Upload**: Drag and drop or click to upload a PDF document
+- **Interactive Chat**: Ask questions about the uploaded document
+- **Source Tracking**: See which parts of the document were used to generate each answer
+- **Responsive Design**: Works on both desktop and mobile devices
+
 ## Testing the Document Assistant
 
 ### Testing with Command Line Interface (CLI)
