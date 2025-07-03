@@ -2,16 +2,20 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-An agentic document assistant that answers questions based on the content of a provided PDF document. The system uses state-of-the-art NLP models to understand and retrieve information from documents.
+An agentic document assistant that provides accurate, context-aware answers based on the content of uploaded PDF documents. The system uses state-of-the-art NLP models to understand and retrieve information with high precision.
 
 ## Features
 
-- Load and process PDF documents
-- Answer questions based strictly (as strict as T5-based models can be, but not as strict as GPTs) on document content
-- Command-line interface for interactive use
-- REST API for integration with other applications
-- Efficient document chunking and embedding
-- Semantic search using FAISS for fast retrieval
+- **Document Processing**: Load and process PDF documents with efficient text extraction
+- **Accurate Q&A**: Get precise answers based strictly (as strict as T5-based models can be, but not as strict as GPTs) on document content
+- **Multiple Interfaces**:
+  - Web interface for easy interaction
+  - REST API for programmatic access
+  - Command-line interface for scripting
+- **Smart Retrieval**:
+  - Semantic search using FAISS
+  - Context-aware responses with source attribution
+  - Efficient document chunking with overlap preservation
 
 ## Setup
 
@@ -213,19 +217,16 @@ This testing sequence verifies that the system:
 - Prioritizes document content over general knowledge
 - Handles unknown information appropriately
 
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
 ## Project Structure
 
 ```
 .
 ├── .git/                     # Git version control
 ├── .gitignore               # Git ignore file
-├── README.md                # This file
+├── README.md                # Project documentation
+├── LICENSE                  # MIT License
 ├── requirements.txt         # Python dependencies
-├── data/                    # Directory for document storage
+├── data/                    # Document storage
 │   └── sample_geography.pdf  # Example document
 ├── document_agent/          # Main package
 │   ├── __init__.py          # Package initialization
@@ -235,25 +236,19 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 │   │   └── api/
 │   │       ├── __init__.py
 │   │       └── app.py       # FastAPI application
-│   └── core/                # Core functionality
+│   └── core/                # Core processing logic
 │       ├── __init__.py
-│       └── document_processor.py  # Document processing logic
-└── tests/                   # Test files
-    └── test_document_agent.py     # Test cases
+│       └── document_processor.py
+└── run_web.sh               # Web server startup script
 ```
 
-## Implementation Details
+## Technical Implementation
 
-### Document Processing
-- Uses `pypdf` for PDF text extraction
-- Implements chunking with overlap for better context
-- Uses `sentence-transformers` for generating embeddings
-- Leverages FAISS for efficient similarity search
-
-### Question Answering
-- Uses T5 model for generating answers
-- Implements context-aware responses
-- Falls back to "I cannot answer..." when information is not found
+- **Document Processing**: Uses `pypdf` for text extraction with smart chunking
+- **Embeddings**: Leverages `sentence-transformers` with the `all-MiniLM-L6-v2` model
+- **Vector Search**: Implements FAISS for efficient similarity search
+- **Q&A Generation**: Utilizes T5 model for accurate, context-aware responses
+- **Web Interface**: FastAPI backend with CORS support and responsive frontend
 
 ## Notes
 
@@ -271,4 +266,8 @@ If you encounter a segmentation fault:
 
 ## License
 
-[Specify your license here]
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
