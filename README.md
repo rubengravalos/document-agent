@@ -67,12 +67,95 @@ Then open your browser to http://localhost:8000/docs for the interactive API doc
 - `POST /ask`: Ask a question about the document
 - `POST /upload`: Upload and process a new PDF document
 
-## Testing
+## Testing the Document Assistant
 
-Run the test suite to verify the installation:
-```bash
-python -m tests.test_document_agent
-```
+### Testing with Command Line Interface (CLI)
+
+1. **Start the CLI**:
+   ```bash
+   python -m document_agent.cli
+   ```
+
+2. **Test Sequence**:
+   The CLI will automatically load the sample document and enter an interactive session.
+   Enter the following questions one by one and verify the responses:
+   ```
+   Question: What is the capital of France?
+   Expected Response: Paris
+   
+   Question: What is the capital of Spain?
+   Expected Response: Sydney
+   (This demonstrates the system using document context over general knowledge)
+   
+   Question: What is the capital of Australia?
+   Expected Response: I cannot answer this question based on the provided document.
+   (Since the document doesn't mention Australia's capital)
+   ```
+
+3. **Exit the CLI**:
+   Type `exit` or press Ctrl+C to quit.
+
+### Testing with API
+
+1. **Start the API server**:
+   ```bash
+   uvicorn document_agent.app.api.app:app --reload
+   ```
+
+2. **Verify the server is running**:
+   ```bash
+   curl http://127.0.0.1:8000/status
+   ```
+   Should return: `{"status":"running","document_loaded":false}`
+
+3. **Upload and process the document**:
+   ```bash
+   curl -X 'POST' \
+     'http://127.0.0.1:8000/upload' \
+     -H 'accept: application/json' \
+     -H 'Content-Type: multipart/form-data' \
+     -F 'file=@data/sample_geography.pdf;type=application/pdf'
+   ```
+   Should return: `{"status":"success","message":"Document processed successfully"}`
+
+4. **Verify document is loaded**:
+   ```bash
+   curl http://127.0.0.1:8000/status
+   ```
+   Should return: `{"status":"running","document_loaded":true}`
+
+5. **Test the questions**:
+   ```bash
+   # Question 1
+   curl -X 'POST' 'http://127.0.0.1:8000/ask' \
+     -H 'Content-Type: application/json' \
+     -d '{"question": "What is the capital of France?"}'
+   # Expected: {"answer":"Paris"}
+   
+   # Question 2
+   curl -X 'POST' 'http://127.0.0.1:8000/ask' \
+     -H 'Content-Type: application/json' \
+     -d '{"question": "What is the capital of Spain?"}'
+   # Expected: {"answer":"Sydney"} (shows document context takes precedence)
+   
+   # Question 3
+   curl -X 'POST' 'http://127.0.0.1:8000/ask' \
+     -H 'Content-Type: application/json' \
+     -d '{"question": "What is the capital of Australia?"}'
+   # Expected: {"answer":"I cannot answer this question based on the provided document."}
+   ```
+
+### Expected Behavior Explanation
+
+1. **Capital of France**: Correctly identifies "Paris" from the document.
+2. **Capital of Spain**: Returns "Sydney" (not the commonly known "Madrid") because the document contains incorrect information, demonstrating that the system relies solely on the provided document content.
+3. **Capital of Australia**: Returns a message indicating it cannot answer, as the document doesn't mention Australia's capital.
+
+This testing sequence verifies that the system:
+- Correctly processes and indexes the document
+- Properly retrieves information that exists in the document
+- Prioritizes document content over general knowledge
+- Handles unknown information appropriately
 
 ## Project Structure
 
